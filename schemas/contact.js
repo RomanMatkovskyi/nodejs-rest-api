@@ -13,8 +13,8 @@ const contactSchema = Joi.object({
     .messages({
       "any.required": "email",
     }),
-  number: Joi.string().required().messages({
-    "any.required": "number",
+  phone: Joi.string().required().messages({
+    "any.required": "phone",
   }),
 });
 

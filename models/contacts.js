@@ -1,6 +1,7 @@
 const fs = require("fs/promises");
 const path = require("node:path");
 const crypto = require("node:crypto");
+const contactSchema = require("../schemas/contact");
 
 const { encode } = require("punycode");
 
@@ -61,6 +62,15 @@ const updateContact = async (contactId, body) => {
 
   if (index === -1) {
     return null;
+  }
+
+  const response = contactSchema.validate(body, { abortEarly: false });
+  if (response.error) {
+    return {
+      message: `missing required ${response.error.details
+        .map((err) => err.message)
+        .join(", ")} field`,
+    };
   }
 
   const newContact = { id: contactId, ...body };

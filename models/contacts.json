@@ -1,9 +1,9 @@
 [
   {
     "id": "drsAJ4SHPYqZeG-83QTVW",
-    "name": "Tomas Edison",
-    "email": "tomas@gmail.com",
-    "phone": "+450 304 2345"
+    "name": "Test OK",
+    "email": "den@gmail.com",
+    "phone": "(450)8768669"
   },
   {
     "id": "vza2RIzNGIwutCVCs4mCL",
@@ -54,27 +54,9 @@
     "phone": "+450 304 2343"
   },
   {
-    "id": "1fbf161c-5765-49e6-bcfa-1c9312093d91",
-    "name": "tom clark",
-    "email": "clark@gmail.com",
-    "number": "4508768669"
-  },
-  {
-    "id": "a35600f3-8afd-4aa9-ba0d-51ea487c63b1",
-    "name": "tom clark",
-    "email": "clark@gmail.com",
-    "number": "4508768669"
-  },
-  {
-    "id": "0336c359-8927-413d-86b0-065018c75632",
-    "name": "tom clark",
-    "email": "clark@gmail.com",
-    "number": "4508768669"
-  },
-  {
-    "id": "e0f8b26c-9472-45b4-9d5c-ab178e3ed850",
+    "id": "22f4e441-425f-4852-8a41-8846067ddf02",
     "name": "Test This",
     "email": "den@gmail.com",
-    "number": "(450)8768669"
+    "phone": "(450)8768669"
   }
 ]

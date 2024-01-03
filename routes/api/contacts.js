@@ -18,7 +18,7 @@ router.get("/:contactId", async (req, res, next) => {
   try {
     const contact = await Contacts.getContactById(contactId);
     if (!contact) {
-      return res.status(404).send('"message": "Not found"');
+      return res.status(404).send('{"message": "Not found"}');
     }
     res.send(contact);
   } catch (error) {
@@ -58,18 +58,13 @@ router.delete("/:contactId", async (req, res, next) => {
 
 router.put("/:contactId", async (req, res, next) => {
   const { contactId } = req.params;
-  const response = contactSchema.validate(req.body, { abortEarly: false });
-  if (response.error) {
-    return res.status(400).send({
-      message: `missing required ${response.error.details
-        .map((err) => err.message)
-        .join(", ")} field`,
-    });
-  }
   try {
     const contact = await Contacts.updateContact(contactId, req.body);
     if (contact === null) {
       return res.status(404).send({ message: "Not found" });
+    }
+    if (contact.message) {
+      return res.status(400).send(contact.message);
     }
     res.send(contact);
   } catch (error) {
