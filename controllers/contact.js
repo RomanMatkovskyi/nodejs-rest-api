@@ -14,6 +14,7 @@ async function getContacts(req, res, next) {
 
 async function getContactById(req, res, next) {
   const { contactId } = req.params;
+  console.log("ID", contactId);
   try {
     const contact = await Contact.findById(contactId);
 
@@ -31,7 +32,7 @@ async function createContact(req, res, next) {
   const response = contactSchema.validate(req.body, { abortEarly: false });
   if (response.error) {
     return res.status(400).send({
-      message: `missing ${response.error.details
+      message: `missing required ${response.error.details
         .map((err) => err.message)
         .join(", ")} field`,
     });
