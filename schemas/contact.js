@@ -15,6 +15,7 @@ const contactSchema = Joi.object({
   phone: Joi.number().required().messages({
     "any.required": "phone",
   }),
+  favorite: Joi.boolean(),
 });
 
 module.exports = contactSchema;
