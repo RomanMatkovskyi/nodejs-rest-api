@@ -2,6 +2,8 @@ const Contact = require("../models/contactDB");
 const contactSchema = require("../schemas/contact");
 const favoriteSchema = require("../schemas/favorite");
 
+const ObjectId = require("mongoose").Types.ObjectId;
+
 async function getContacts(req, res, next) {
   try {
     const contacts = await Contact.find();
@@ -14,9 +16,15 @@ async function getContacts(req, res, next) {
 
 async function getContactById(req, res, next) {
   const { contactId } = req.params;
+  const idCheck = ObjectId.isValid(contactId);
+  if (!idCheck) {
+    return res
+      .status(400)
+      .send({ message: "Invalid id, id must be a 24 character hex string" });
+  }
   try {
     const contact = await Contact.findById(contactId);
-
+    console.log("Contact", contact);
     if (contact === null) {
       return res.status(404).send({ message: "Contact not found" });
     }
@@ -54,6 +62,12 @@ async function createContact(req, res, next) {
 
 async function deleteContact(req, res, next) {
   const { contactId } = req.params;
+  const idCheck = ObjectId.isValid(contactId);
+  if (!idCheck) {
+    return res
+      .status(400)
+      .send({ message: "Invalid id, id must be a 24 character hex string" });
+  }
   try {
     const contact = await Contact.findByIdAndDelete(contactId);
 
@@ -69,6 +83,12 @@ async function deleteContact(req, res, next) {
 
 async function updateContact(req, res, next) {
   const { contactId } = req.params;
+  const idCheck = ObjectId.isValid(contactId);
+  if (!idCheck) {
+    return res
+      .status(400)
+      .send({ message: "Invalid id, id must be a 24 character hex string" });
+  }
   try {
     const contact = {
       name: req.body.name,
@@ -79,6 +99,10 @@ async function updateContact(req, res, next) {
     const newContact = await Contact.findByIdAndUpdate(contactId, contact, {
       new: true,
     });
+    if (newContact === null) {
+      res.status(404).send({ message: "contact not found" });
+    }
+    console.log("NEW CONTACT", newContact);
     res.send(newContact);
   } catch (error) {
     next(error);
@@ -95,6 +119,12 @@ async function updateStatusContact(req, res, next) {
   }
 
   const { contactId } = req.params;
+  const idCheck = ObjectId.isValid(contactId);
+  if (!idCheck) {
+    return res
+      .status(400)
+      .send({ message: "Invalid id, id must be a 24 character hex string" });
+  }
   try {
     const result = await Contact.findByIdAndUpdate(
       contactId,
