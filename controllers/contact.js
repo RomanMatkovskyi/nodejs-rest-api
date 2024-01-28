@@ -4,7 +4,8 @@ const favoriteSchema = require("../schemas/favorite");
 
 async function getContacts(req, res, next) {
   try {
-    const contacts = await Contact.find();
+    const userId = req.user.id;
+    const contacts = await Contact.find({ owner: userId });
 
     res.send(contacts);
   } catch (error) {
@@ -14,11 +15,17 @@ async function getContacts(req, res, next) {
 
 async function getContactById(req, res, next) {
   const { contactId } = req.params;
-  console.log("ID", contactId);
   try {
     const contact = await Contact.findById(contactId);
 
     if (contact === null) {
+      return res.status(404).send({ message: "Contact not found" });
+    }
+
+    if (typeof contact.owner === "undefined") {
+      return res.status(404).send({ message: "Contact not found" });
+    }
+    if (contact.owner.toString() !== req.user.id) {
       return res.status(404).send({ message: "Contact not found" });
     }
 
@@ -42,6 +49,7 @@ async function createContact(req, res, next) {
     name: req.body.name,
     email: req.body.email,
     phone: req.body.phone,
+    owner: req.user.id,
   };
 
   try {
@@ -62,6 +70,16 @@ async function deleteContact(req, res, next) {
       return res.status(404).send({ message: "Contact not found" });
     }
 
+    if (typeof contact.owner === "undefined") {
+      return res.status(404).send({
+        message: "Contact not found",
+      });
+    }
+
+    if (contact.owner.toString() !== req.user.id) {
+      return res.status(404).send({ message: "Contact not found" });
+    }
+
     res.send(contact);
   } catch (error) {
     next(error);
@@ -70,14 +88,44 @@ async function deleteContact(req, res, next) {
 
 async function updateContact(req, res, next) {
   const { contactId } = req.params;
+  const { name, email, phone } = req.body;
   try {
-    const contact = {
-      name: req.body.name,
-      email: req.body.email,
-      phone: req.body.phone,
+    if (
+      typeof name === "undefined" &&
+      typeof email === "undefined" &&
+      typeof phone === "undefined"
+    ) {
+      return res
+        .status(400)
+        .send({ message: "You have to update at least field" });
+    }
+
+    const contactCheck = await Contact.findById(contactId);
+    if (contactCheck === null) {
+      return res.status(404).send({
+        message: "Contact not found",
+      });
+    }
+
+    if (typeof contactCheck.owner === "undefined") {
+      return res.status(404).send({
+        message: "Contact not found",
+      });
+    }
+
+    if (contactCheck.owner.toString() !== req.user.id) {
+      return res.status(404).send({
+        message: "Contact not found",
+      });
+    }
+
+    const updContact = {
+      name: name,
+      email: email,
+      phone: phone,
     };
 
-    const newContact = await Contact.findByIdAndUpdate(contactId, contact, {
+    const newContact = await Contact.findByIdAndUpdate(contactId, updContact, {
       new: true,
     });
     res.send(newContact);
@@ -97,6 +145,25 @@ async function updateStatusContact(req, res, next) {
 
   const { contactId } = req.params;
   try {
+    const contactCheck = await Contact.findById(contactId);
+    if (contactCheck === null) {
+      return res.status(404).send({
+        message: "Contact not found",
+      });
+    }
+
+    if (typeof contactCheck.owner === "undefined") {
+      return res.status(404).send({
+        message: "Contact not found",
+      });
+    }
+
+    if (contactCheck.owner.toString() !== req.user.id) {
+      return res.status(404).send({
+        message: "Contact not found",
+      });
+    }
+
     const result = await Contact.findByIdAndUpdate(
       contactId,
       {
