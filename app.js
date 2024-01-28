@@ -3,7 +3,8 @@ const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
 
-const routes = require("./routes/api");
+
+const routes = require("./routes/api")
 
 const app = express();
 

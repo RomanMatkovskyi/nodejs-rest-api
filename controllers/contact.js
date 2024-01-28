@@ -2,6 +2,7 @@ const Contact = require("../models/contactDB");
 const contactSchema = require("../schemas/contact");
 const favoriteSchema = require("../schemas/favorite");
 
+
 async function getContacts(req, res, next) {
   try {
     const userId = req.user.id;
@@ -17,10 +18,10 @@ async function getContactById(req, res, next) {
   const { contactId } = req.params;
   try {
     const contact = await Contact.findById(contactId);
-
     if (contact === null) {
       return res.status(404).send({ message: "Contact not found" });
     }
+
 
     if (typeof contact.owner === "undefined") {
       return res.status(404).send({ message: "Contact not found" });
@@ -28,7 +29,6 @@ async function getContactById(req, res, next) {
     if (contact.owner.toString() !== req.user.id) {
       return res.status(404).send({ message: "Contact not found" });
     }
-
     res.send(contact);
   } catch (error) {
     next(error);
@@ -49,6 +49,7 @@ async function createContact(req, res, next) {
     name: req.body.name,
     email: req.body.email,
     phone: req.body.phone,
+
     owner: req.user.id,
   };
 
@@ -63,12 +64,14 @@ async function createContact(req, res, next) {
 
 async function deleteContact(req, res, next) {
   const { contactId } = req.params;
+
   try {
     const contact = await Contact.findByIdAndDelete(contactId);
 
     if (contact === null) {
       return res.status(404).send({ message: "Contact not found" });
     }
+
 
     if (typeof contact.owner === "undefined") {
       return res.status(404).send({
@@ -79,7 +82,6 @@ async function deleteContact(req, res, next) {
     if (contact.owner.toString() !== req.user.id) {
       return res.status(404).send({ message: "Contact not found" });
     }
-
     res.send(contact);
   } catch (error) {
     next(error);
@@ -88,6 +90,7 @@ async function deleteContact(req, res, next) {
 
 async function updateContact(req, res, next) {
   const { contactId } = req.params;
+
   const { name, email, phone } = req.body;
   try {
     if (
@@ -144,6 +147,7 @@ async function updateStatusContact(req, res, next) {
   }
 
   const { contactId } = req.params;
+
   try {
     const contactCheck = await Contact.findById(contactId);
     if (contactCheck === null) {
