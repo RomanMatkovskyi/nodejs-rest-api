@@ -70,7 +70,13 @@ async function login(req, res, next) {
     });
     await Auth.findByIdAndUpdate(user._id, { token });
     console.log("TOKEN", token);
-    res.send({ token });
+    res.send({
+      token,
+      user: {
+        email,
+        subscription: user.subscription,
+      },
+    });
   } catch (error) {
     next(error);
   }

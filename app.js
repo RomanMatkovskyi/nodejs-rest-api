@@ -3,8 +3,7 @@ const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
 
-
-const routes = require("./routes/api")
+const routes = require("./routes/api");
 
 const app = express();
 
@@ -21,7 +20,7 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  res.status(500).json({ message: err.message });
+  res.status(err.status ? err.status : 500).json({ message: err.message });
 });
 
 module.exports = app;
