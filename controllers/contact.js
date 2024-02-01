@@ -2,6 +2,7 @@ const Contact = require("../models/contactDB");
 const contactSchema = require("../schemas/contact");
 const favoriteSchema = require("../schemas/favorite");
 
+const ObjectId = require("mongoose").Types.ObjectId;
 
 async function getContacts(req, res, next) {
   try {
@@ -16,12 +17,15 @@ async function getContacts(req, res, next) {
 
 async function getContactById(req, res, next) {
   const { contactId } = req.params;
+  if (!ObjectId.isValid(contactId)) {
+    return res.status(400).send({ message: "Contact not found" });
+  }
+
   try {
     const contact = await Contact.findById(contactId);
     if (contact === null) {
       return res.status(404).send({ message: "Contact not found" });
     }
-
 
     if (typeof contact.owner === "undefined") {
       return res.status(404).send({ message: "Contact not found" });
@@ -64,6 +68,9 @@ async function createContact(req, res, next) {
 
 async function deleteContact(req, res, next) {
   const { contactId } = req.params;
+  if (!ObjectId.isValid(contactId)) {
+    return res.status(400).send({ message: "Contact not found" });
+  }
 
   try {
     const contact = await Contact.findByIdAndDelete(contactId);
@@ -71,7 +78,6 @@ async function deleteContact(req, res, next) {
     if (contact === null) {
       return res.status(404).send({ message: "Contact not found" });
     }
-
 
     if (typeof contact.owner === "undefined") {
       return res.status(404).send({
@@ -90,6 +96,9 @@ async function deleteContact(req, res, next) {
 
 async function updateContact(req, res, next) {
   const { contactId } = req.params;
+  if (!ObjectId.isValid(contactId)) {
+    return res.status(400).send({ message: "Contact not found" });
+  }
 
   const { name, email, phone } = req.body;
   try {
@@ -140,13 +149,15 @@ async function updateContact(req, res, next) {
 async function updateStatusContact(req, res, next) {
   const response = favoriteSchema.validate(req.body, { abortEarly: false });
   if (response.error) {
-    console.log("ERROR", response.error.details);
     return res.status(400).send({
       message: `${response.error.details.map((msg) => msg.message)}`,
     });
   }
 
   const { contactId } = req.params;
+  if (!ObjectId.isValid(contactId)) {
+    return res.status(400).send({ message: "Contact not found" });
+  }
 
   try {
     const contactCheck = await Contact.findById(contactId);
