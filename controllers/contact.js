@@ -6,7 +6,8 @@ const ObjectId = require("mongoose").Types.ObjectId;
 
 async function getContacts(req, res, next) {
   try {
-    const contacts = await Contact.find();
+    const userId = req.user.id;
+    const contacts = await Contact.find({ owner: userId });
 
     res.send(contacts);
   } catch (error) {
@@ -16,19 +17,22 @@ async function getContacts(req, res, next) {
 
 async function getContactById(req, res, next) {
   const { contactId } = req.params;
-  const idCheck = ObjectId.isValid(contactId);
-  if (!idCheck) {
-    return res
-      .status(400)
-      .send({ message: "Invalid id, id must be a 24 character hex string" });
+  if (!ObjectId.isValid(contactId)) {
+    return res.status(400).send({ message: "Contact not found" });
   }
+
   try {
     const contact = await Contact.findById(contactId);
-    console.log("Contact", contact);
     if (contact === null) {
       return res.status(404).send({ message: "Contact not found" });
     }
 
+    if (typeof contact.owner === "undefined") {
+      return res.status(404).send({ message: "Contact not found" });
+    }
+    if (contact.owner.toString() !== req.user.id) {
+      return res.status(404).send({ message: "Contact not found" });
+    }
     res.send(contact);
   } catch (error) {
     next(error);
@@ -39,7 +43,7 @@ async function createContact(req, res, next) {
   const response = contactSchema.validate(req.body, { abortEarly: false });
   if (response.error) {
     return res.status(400).send({
-      message: `missing ${response.error.details
+      message: `missing required ${response.error.details
         .map((err) => err.message)
         .join(", ")} field`,
     });
@@ -49,6 +53,8 @@ async function createContact(req, res, next) {
     name: req.body.name,
     email: req.body.email,
     phone: req.body.phone,
+
+    owner: req.user.id,
   };
 
   try {
@@ -62,12 +68,10 @@ async function createContact(req, res, next) {
 
 async function deleteContact(req, res, next) {
   const { contactId } = req.params;
-  const idCheck = ObjectId.isValid(contactId);
-  if (!idCheck) {
-    return res
-      .status(400)
-      .send({ message: "Invalid id, id must be a 24 character hex string" });
+  if (!ObjectId.isValid(contactId)) {
+    return res.status(400).send({ message: "Contact not found" });
   }
+
   try {
     const contact = await Contact.findByIdAndDelete(contactId);
 
@@ -75,6 +79,15 @@ async function deleteContact(req, res, next) {
       return res.status(404).send({ message: "Contact not found" });
     }
 
+    if (typeof contact.owner === "undefined") {
+      return res.status(404).send({
+        message: "Contact not found",
+      });
+    }
+
+    if (contact.owner.toString() !== req.user.id) {
+      return res.status(404).send({ message: "Contact not found" });
+    }
     res.send(contact);
   } catch (error) {
     next(error);
@@ -83,26 +96,50 @@ async function deleteContact(req, res, next) {
 
 async function updateContact(req, res, next) {
   const { contactId } = req.params;
-  const idCheck = ObjectId.isValid(contactId);
-  if (!idCheck) {
-    return res
-      .status(400)
-      .send({ message: "Invalid id, id must be a 24 character hex string" });
+  if (!ObjectId.isValid(contactId)) {
+    return res.status(400).send({ message: "Contact not found" });
   }
+
+  const { name, email, phone } = req.body;
   try {
-    const contact = {
-      name: req.body.name,
-      email: req.body.email,
-      phone: req.body.phone,
+    if (
+      typeof name === "undefined" &&
+      typeof email === "undefined" &&
+      typeof phone === "undefined"
+    ) {
+      return res
+        .status(400)
+        .send({ message: "You have to update at least field" });
+    }
+
+    const contactCheck = await Contact.findById(contactId);
+    if (contactCheck === null) {
+      return res.status(404).send({
+        message: "Contact not found",
+      });
+    }
+
+    if (typeof contactCheck.owner === "undefined") {
+      return res.status(404).send({
+        message: "Contact not found",
+      });
+    }
+
+    if (contactCheck.owner.toString() !== req.user.id) {
+      return res.status(404).send({
+        message: "Contact not found",
+      });
+    }
+
+    const updContact = {
+      name: name,
+      email: email,
+      phone: phone,
     };
 
-    const newContact = await Contact.findByIdAndUpdate(contactId, contact, {
+    const newContact = await Contact.findByIdAndUpdate(contactId, updContact, {
       new: true,
     });
-    if (newContact === null) {
-      res.status(404).send({ message: "contact not found" });
-    }
-    console.log("NEW CONTACT", newContact);
     res.send(newContact);
   } catch (error) {
     next(error);
@@ -112,20 +149,36 @@ async function updateContact(req, res, next) {
 async function updateStatusContact(req, res, next) {
   const response = favoriteSchema.validate(req.body, { abortEarly: false });
   if (response.error) {
-    console.log("ERROR", response.error.details);
     return res.status(400).send({
       message: `${response.error.details.map((msg) => msg.message)}`,
     });
   }
 
   const { contactId } = req.params;
-  const idCheck = ObjectId.isValid(contactId);
-  if (!idCheck) {
-    return res
-      .status(400)
-      .send({ message: "Invalid id, id must be a 24 character hex string" });
+  if (!ObjectId.isValid(contactId)) {
+    return res.status(400).send({ message: "Contact not found" });
   }
+
   try {
+    const contactCheck = await Contact.findById(contactId);
+    if (contactCheck === null) {
+      return res.status(404).send({
+        message: "Contact not found",
+      });
+    }
+
+    if (typeof contactCheck.owner === "undefined") {
+      return res.status(404).send({
+        message: "Contact not found",
+      });
+    }
+
+    if (contactCheck.owner.toString() !== req.user.id) {
+      return res.status(404).send({
+        message: "Contact not found",
+      });
+    }
+
     const result = await Contact.findByIdAndUpdate(
       contactId,
       {
