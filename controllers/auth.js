@@ -1,11 +1,12 @@
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const Auth = require("../models/auth");
-const userSchema = require("../schemas/user");
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const gravatar = require('gravatar');
+
+const Auth = require('../models/auth');
+const userSchema = require('../schemas/user');
 
 async function register(req, res, next) {
   const { email, password } = req.body;
-  console.log("EMAIL", email);
 
   const response = userSchema.validate(req.body, {
     abortEarly: false,
@@ -13,22 +14,29 @@ async function register(req, res, next) {
   if (response.error) {
     return res.status(400).send({
       message: `missing required ${response.error.details
-        .map((err) => err.message)
-        .join(", ")} field`,
+        .map(err => err.message)
+        .join(', ')} field`,
     });
   }
 
   try {
     const user = await Auth.findOne({ email });
     if (user !== null) {
-      return res.status(409).send({ message: "Email in use" });
+      return res.status(409).send({ message: 'Email in use' });
     }
     const hashPass = await bcrypt.hash(password, 10);
-    await Auth.create({ email, password: hashPass });
+    const avatarUrl = gravatar.url(email, {
+      s: '200',
+      r: 'pg',
+      d: 'identicon',
+    });
+
+    await Auth.create({ email, password: hashPass, avatarURL: avatarUrl });
     res.status(201).send({
       user: {
         email: email,
-        subcription: "starter",
+        subcription: 'starter',
+        avatarUrl,
       },
     });
   } catch (error) {
@@ -45,8 +53,8 @@ async function login(req, res, next) {
   if (response.error) {
     return res.status(400).send({
       message: `missing required ${response.error.details
-        .map((err) => err.message)
-        .join(", ")} field`,
+        .map(err => err.message)
+        .join(', ')} field`,
     });
   }
 
@@ -54,14 +62,14 @@ async function login(req, res, next) {
     const user = await Auth.findOne({ email });
     if (user === null) {
       return res.status(401).send({
-        message: "Email or password is wrong",
+        message: 'Email or password is wrong',
       });
     }
 
     const passwordCheck = await bcrypt.compare(password, user.password);
     if (!passwordCheck) {
       return res.status(401).send({
-        message: "Email or password is wrong",
+        message: 'Email or password is wrong',
       });
     }
 
@@ -69,7 +77,7 @@ async function login(req, res, next) {
       expiresIn: 60 * 60,
     });
     await Auth.findByIdAndUpdate(user._id, { token });
-    console.log("TOKEN", token);
+    console.log('TOKEN', token);
     res.send({
       token,
       user: {
@@ -96,7 +104,7 @@ async function currentUser(req, res, next) {
   try {
     const user = await Auth.findById(id);
     if (user === null) {
-      return res.status(401).send({ message: "Not authorized" });
+      return res.status(401).send({ message: 'Not authorized' });
     }
     const { email, subscription } = user;
     res.status(200).send({ email, subscription });

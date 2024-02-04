@@ -1,12 +1,14 @@
-const express = require("express");
-const userController = require("../../controllers/user");
-const uploadMiddleware = require("../../middleware/upload");
+const express = require('express');
+const userController = require('../../controllers/user');
+const uploadMiddleware = require('../../middleware/upload');
 
 const router = express.Router();
 
+router.get('/avatars', userController.getAvatar);
+
 router.patch(
-  "/avatar",
-  uploadMiddleware.single("avatar"),
+  '/avatars',
+  uploadMiddleware.single('avatar'),
   userController.uploadAvatar
 );
 
